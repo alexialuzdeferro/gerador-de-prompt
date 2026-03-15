@@ -6,173 +6,66 @@
     <title>Grimório Visceral 2026</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg: #050505;
-            --accent: #8b0000;
-            --accent-bright: #ff0000;
-            --text: #c0c0c0;
-            --card: #111;
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Courier New', Courier, monospace;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 15px;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 450px;
-            background: var(--card);
-            border: 1px solid #222;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
-            border-radius: 4px;
-        }
-
-        h1 {
-            font-size: 1.1rem;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            color: var(--accent-bright);
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--accent);
-            padding-bottom: 10px;
-        }
-
-        #display {
-            background: #000;
-            padding: 20px;
-            min-height: 160px;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            line-height: 1.6;
-            border: 1px inset #222;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #fff;
-            cursor: pointer;
-        }
-
+        :root { --bg: #050505; --accent: #8b0000; --text: #c0c0c0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+        .container { width: 100%; max-width: 450px; background: #111; border: 1px solid #222; padding: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
+        h1 { font-size: 1.1rem; text-align: center; text-transform: uppercase; letter-spacing: 5px; color: #ff0000; border-bottom: 1px solid var(--accent); padding-bottom: 10px; }
+        #display { background: #000; padding: 20px; min-height: 160px; margin-bottom: 20px; font-size: 1rem; line-height: 1.6; border: 1px inset #222; display: flex; align-items: center; justify-content: center; text-align: center; color: #fff; cursor: pointer; }
         .controls { display: grid; gap: 12px; }
-
-        button {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        button:active { background: var(--accent-bright); transform: scale(0.98); }
-
-        .btn-save {
-            background: transparent;
-            border: 1px solid var(--accent);
-            font-size: 0.8rem;
-        }
-
-        #status-msg {
-            text-align: center;
-            font-size: 0.7rem;
-            margin-top: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            height: 15px;
-            color: var(--accent-bright);
-        }
+        button { background: var(--accent); color: #fff; border: none; padding: 18px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; }
+        .btn-save { background: transparent; border: 1px solid var(--accent); font-size: 0.8rem; }
+        #status { text-align: center; font-size: 0.7rem; margin-top: 15px; height: 15px; color: #ff0000; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
+<div class="container">
     <h1>Grimório Abissal</h1>
-
-    <div id="display" onclick="copyText()">
-        Toque para despertar um conceito...
-    </div>
-
+    <div id="display" onclick="copyText()">Toque para despertar...</div>
     <div class="controls">
-        <button onclick="gerarPrompt()">Gerar Novo Prompt</button>
-        <button class="btn-save" onclick="salvarNoSupabase()">Eternizar no Supabase</button>
+        <button onclick="gerar()">Gerar Novo Prompt</button>
+        <button class="btn-save" onclick="salvar()">Eternizar no Supabase</button>
     </div>
-
-    <div id="status-msg"></div>
+    <div id="status"></div>
 </div>
 
 <script>
-    // Credenciais Integradas (Projeto: rbygxkbewzknvjjhxdvw)
-    const SUPABASE_URL = "https://rbygxkbewzknvjjhxdvw.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJieWd4a2Jld3prbnZqamh4ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDcxNjQsImV4cCI6MjA4MTU4MzE2NH0.YrHF9HEGo6yv9MyNsPzFgBhaAB1DRh2SLU8f7L6s1nY";
-    
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const S_URL = "https://rbygxkbewzknvjjhxdvw.supabase.co";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJieWd4a2Jld3prbnZqamh4ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDcxNjQsImV4cCI6MjA4MTU4MzE2NH0.YrHF9HEGo6yv9MyNsPzFgBhaAB1DRh2SLU8f7L6s1nY";
+    const sb = supabase.createClient(S_URL, S_KEY);
 
     const matriz = {
-        entidade: ["Maria Padilha", "Sete Saias", "Rainha do Cabaré", "Pombagira das Almas", "Dama da Noite", "Pombagira do Lodo", "Maria Mulambo"],
-        postura: ["em majestade", "dançando entre chamas negras", "com olhar de obsidiana", "soprando fumaça púrpura", "com um sorriso enigmático"],
-        cenario: ["na encruzilhada do abismo", "em um palácio vitoriano em ruínas", "sob a névoa de um cemitério", "diante de um espelho de prata trincado", "no horizonte do limbo"],
-        estilo: ["Chiaroscuro dramático", "Estética Gótica-Visceral", "Hyper-realistic 8k", "Estilo Noir cinematográfico", "Atmosfera surrealista Lynchiana"]
+        entidade: ["Maria Padilha", "Sete Saias", "Rainha do Cabaré", "Pombagira das Almas", "Dama da Noite", "Maria Mulambo", "Pombagira Cigana"],
+        acao: ["em majestade", "dançando entre sombras", "com olhar de obsidiana", "tecendo destinos", "emergindo do vácuo"],
+        local: ["na encruzilhada", "no palácio em ruínas", "sob a névoa", "diante do espelho", "no coração do abismo"],
+        estilo: ["Chiaroscuro", "Visceral Gótico", "Hyper-realistic 8k", "Cinematográfico Noir"]
     };
 
-    let promptGerado = "";
+    let promptAtual = "";
 
-    function gerarPrompt() {
+    function gerar() {
         const e = matriz.entidade[Math.floor(Math.random() * matriz.entidade.length)];
-        const p = matriz.postura[Math.floor(Math.random() * matriz.postura.length)];
-        const c = matriz.cenario[Math.floor(Math.random() * matriz.cenario.length)];
+        const a = matriz.acao[Math.floor(Math.random() * matriz.acao.length)];
+        const l = matriz.local[Math.floor(Math.random() * matriz.local.length)];
         const s = matriz.estilo[Math.floor(Math.random() * matriz.estilo.length)];
-
-        promptGerado = `${e} ${p}, ${c}. ${s}, detalhes viscerais, iluminação profunda --ar 9:16 --v 6.0`;
-        document.getElementById('display').innerText = promptGerado;
-        showStatus("Conceito Gerado");
+        promptAtual = `${e} ${a}, ${l}. ${s} --ar 9:16 --v 6.0`;
+        document.getElementById('display').innerText = promptAtual;
     }
 
-    async function salvarNoSupabase() {
-        if (!promptGerado) {
-            showStatus("Gere algo primeiro");
-            return;
-        }
-
-        showStatus("Enviando para Oregon...");
-
-        const { error } = await sb
-            .from('grimorio_prompts')
-            .insert([{ corpo_prompt: promptGerado, categoria: 'Pombagira' }]);
-
-        if (error) {
-            console.error(error);
-            showStatus("Erro nas Políticas RLS");
-        } else {
-            showStatus("Eternizado com Sucesso!");
-            copyText(); // Copia automaticamente ao salvar
-        }
+    async function salvar() {
+        if (!promptAtual) return;
+        document.getElementById('status').innerText = "Conectando ao Abismo...";
+        const { error } = await sb.from('grimorio_prompts').insert([{ corpo_prompt: promptAtual }]);
+        if (error) { document.getElementById('status').innerText = "Erro na Conexão"; console.log(error); }
+        else { document.getElementById('status').innerText = "Eternizado com Sucesso!"; copyText(); }
     }
 
     function copyText() {
         const txt = document.getElementById('display').innerText;
         if (txt.includes("Toque")) return;
         navigator.clipboard.writeText(txt);
-        showStatus("Copiado para o Grimório!");
-    }
-
-    function showStatus(msg) {
-        document.getElementById('status-msg').innerText = msg;
-        setTimeout(() => { document.getElementById('status-msg').innerText = ""; }, 3000);
+        document.getElementById('status').innerText = "Copiado para o Grimório!";
     }
 </script>
-
 </body>
 </html>
