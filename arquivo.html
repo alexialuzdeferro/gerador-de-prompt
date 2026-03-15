@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquivo Abissal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --bg: #000; --accent: #4a0000; --text: #888; --bright: #ff1a1a; }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding: 20px; text-align: center; }
+        .header { margin-bottom: 30px; border-bottom: 1px solid var(--accent); padding-bottom: 20px; }
+        h1 { font-size: 0.8rem; letter-spacing: 5px; text-transform: uppercase; color: var(--bright); }
+        .grimorio-grid { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        .prompt-card { background: #080808; border-left: 2px solid var(--accent); padding: 15px; cursor: pointer; transition: 0.3s; text-align: left; }
+        .prompt-card:hover { border-left-color: var(--bright); background: #111; }
+        .prompt-text { font-size: 0.85rem; line-height: 1.5; color: #ccc; margin-bottom: 8px; }
+        .prompt-meta { font-size: 0.6rem; color: #444; text-transform: uppercase; }
+        .btn-link { background: transparent; border: 1px solid #333; color: #555; padding: 10px 20px; cursor: pointer; text-decoration: none; font-size: 0.7rem; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
+        .btn-link:hover { color: var(--bright); border-color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="btn-link">← VOLTAR AO GERADOR</a>
+    <h1>Fragmentos Eternizados</h1>
+</div>
+
+<div id="grid" class="grimorio-grid">
+    <div id="status">Consultando as profundezas...</div>
+</div>
+
+<script>
+    const S_URL = "https://rbygxkbewzknvjjhxdvw.supabase.co";
+    const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJieWd4a2Jld3prbnZqamh4ZHZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYwMDcxNjQsImV4cCI6MjA4MTU4MzE2NH0.YrHF9HEGo6yv9MyNsPzFgBhaAB1DRh2SLU8f7L6s1nY";
+    const sb = supabase.createClient(S_URL, S_KEY);
+
+    async function carregar() {
+        const grid = document.getElementById('grid');
+        const status = document.getElementById('status');
+
+        try {
+            const { data, error } = await sb
+                .from('grimorio_prompts')
+                .select('corpo_prompt, created_at')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                status.innerText = "O abismo está vazio. Eternize algo primeiro.";
+                return;
+            }
+
+            status.style.display = 'none'; // Esconde o carregando
+            
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'prompt-card';
+                card.onclick = () => {
+                    navigator.clipboard.writeText(item.corpo_prompt);
+                    alert("Copiado para o seu Grimório!");
+                };
+                
+                card.innerHTML = `
+                    <div class="prompt-text">${item.corpo_prompt}</div>
+                    <div class="prompt-meta">Toque para copiar e usar</div>
+                `;
+                grid.appendChild(card);
+            });
+
+        } catch (err) {
+            console.error(err);
+            status.innerText = "Erro ao invocar dados. Verifique a conexão.";
+        }
+    }
+
+    carregar();
+</script>
+</body>
+</html>
