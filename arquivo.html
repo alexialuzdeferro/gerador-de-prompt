@@ -17,6 +17,7 @@
         .prompt-meta { font-size: 0.6rem; color: #444; text-transform: uppercase; }
         .btn-link { background: transparent; border: 1px solid #333; color: #555; padding: 10px 20px; cursor: pointer; text-decoration: none; font-size: 0.7rem; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
         .btn-link:hover { color: var(--bright); border-color: var(--accent); }
+        #status { font-size: 0.7rem; color: var(--accent); margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -27,7 +28,7 @@
 </div>
 
 <div id="grid" class="grimorio-grid">
-    <div id="status">Consultando as profundezas...</div>
+    <div id="status">Invocando dados de Oregon...</div>
 </div>
 
 <script>
@@ -40,38 +41,46 @@
         const status = document.getElementById('status');
 
         try {
+            // Buscamos todas as colunas para evitar erro de nome
             const { data, error } = await sb
                 .from('grimorio_prompts')
-                .select('corpo_prompt, created_at')
+                .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-
-            if (!data || data.length === 0) {
-                status.innerText = "O abismo está vazio. Eternize algo primeiro.";
+            if (error) {
+                status.innerText = "Erro na Tabela: " + error.message;
                 return;
             }
 
-            status.style.display = 'none'; // Esconde o carregando
+            if (!data || data.length === 0) {
+                status.innerText = "O banco de dados respondeu, mas parece estar vazio.";
+                return;
+            }
+
+            status.style.display = 'none';
             
             data.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'prompt-card';
+                
+                // Tentamos pegar 'corpo_prompt', se não existir, pegamos a primeira coluna de texto
+                const texto = item.corpo_prompt || item.prompt || "Texto não encontrado";
+                
                 card.onclick = () => {
-                    navigator.clipboard.writeText(item.corpo_prompt);
-                    alert("Copiado para o seu Grimório!");
+                    navigator.clipboard.writeText(texto);
+                    alert("Copiado!");
                 };
                 
                 card.innerHTML = `
-                    <div class="prompt-text">${item.corpo_prompt}</div>
-                    <div class="prompt-meta">Toque para copiar e usar</div>
+                    <div class="prompt-text">${texto}</div>
+                    <div class="prompt-meta">Toque para copiar</div>
                 `;
                 grid.appendChild(card);
             });
 
         } catch (err) {
+            status.innerText = "Erro crítico de conexão.";
             console.error(err);
-            status.innerText = "Erro ao invocar dados. Verifique a conexão.";
         }
     }
 
