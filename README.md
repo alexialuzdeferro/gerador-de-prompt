@@ -1,4 +1,4 @@
-# 🌒 Grimório Visceral 2026: Anatomia do Abismo
+# 🌒 Grimório Visceral: Anatomia do Abismo
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/pombagiras/melusine/refs/heads/main/Al%C3%AA%20(3)%20(3)%20(1).png" width="300" style="border-radius: 50%; border: 2px solid #8b0000;">
